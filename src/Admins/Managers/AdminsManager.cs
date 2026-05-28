@@ -366,7 +366,7 @@ internal class AdminsManager(
             var commandString = AnsiColorMapExtension.Peach + command.CommandString + AnsiColorMapExtension.Reset;
             var aliases = $"{AnsiColorMapExtension.Gray}[{AnsiColorMapExtension.Reset} " + string.Join(", ", configInfo.Aliases) + $" {AnsiColorMapExtension.Gray}]{AnsiColorMapExtension.Reset}";
 
-            return iterator % 4 is 0 ? $"\n{commandString} {configInfo.Permission} {aliases}" : $"{commandString} {configInfo.Permission} {aliases}";
+            return iterator % 4 is 0 ? $"\n{commandString} {aliases}" : $"{commandString} {aliases}";
         }));
         
         Console.WriteLine($"Registered admin commands: \n{allRegisteredCommandsString ?? "none"}", allRegisteredCommandsString);
