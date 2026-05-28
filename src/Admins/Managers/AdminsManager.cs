@@ -316,12 +316,7 @@ internal class AdminsManager(
     private static void RegisterCommands()
     {
         var registeredCommands = new List<IAdminCommand>();
-        
-        var commandRegistry = Admins.Instance
-            .DeathrunManager
-            .Managers
-            .AdminManager.GetCommandRegistry(Admins.BaseAdminModuleIdentity);
-        
+
         foreach (var adminCommand in Admins.Instance.ServiceProvider.GetServices<IAdminCommand>())
         {
             //proceed only if the command is documented in config
@@ -329,6 +324,11 @@ internal class AdminsManager(
 
             // Get command info from config (takes priority over C# object values)
             var commandInfoFromConfig = CommandsConfig.Commands[adminCommand.CommandString];
+
+            var commandRegistry = Admins.Instance
+                .DeathrunManager
+                .Managers
+                .AdminManager.GetCommandRegistry(Admins.BaseAdminModuleIdentity);
 
             commandRegistry.RegisterAdminCommand(adminCommand.CommandString, adminCommand.OnCommandExecute, [AdminsConfig.Permissions.PermissionRegistryIdentity + ":" + commandInfoFromConfig.Permission]);
 
@@ -342,6 +342,16 @@ internal class AdminsManager(
             registeredCommands.Add(adminCommand);
         }
         
+        // var allRegisteredCommandsString = registeredCommands
+        //     .Select(command =>
+        //     {
+        //         var aliases = command.CommandInfo.Aliases.Length > 0
+        //             ? $" ({command.CommandInfo.Aliases.Aggregate((current, next) => $"{current}, {next}")})"
+        //             : "";
+        //
+        //         return $"{command.CommandString}{aliases}";
+        //     })
+        //     .Aggregate((current, next) => $"{current} | {next}");
         var iterator = 0;
         var allRegisteredCommandsString = string.Join("   ", registeredCommands.Select(command =>
         {
@@ -356,7 +366,7 @@ internal class AdminsManager(
             var commandString = AnsiColorMapExtension.Peach + command.CommandString + AnsiColorMapExtension.Reset;
             var aliases = $"{AnsiColorMapExtension.Gray}[{AnsiColorMapExtension.Reset} " + string.Join(", ", configInfo.Aliases) + $" {AnsiColorMapExtension.Gray}]{AnsiColorMapExtension.Reset}";
 
-            return iterator % 4 is 0 ? $"\n{commandString} {aliases}" : $"{commandString} {aliases}";
+            return iterator % 4 is 0 ? $"\n{commandString} {configInfo.Permission} {aliases}" : $"{commandString} {configInfo.Permission} {aliases}";
         }));
         
         Console.WriteLine($"Registered admin commands: \n{allRegisteredCommandsString ?? "none"}", allRegisteredCommandsString);
