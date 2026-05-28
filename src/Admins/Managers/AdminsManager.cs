@@ -91,36 +91,28 @@ internal class AdminsManager(
         try
         {
             var moduleName = Assembly.GetExecutingAssembly().GetName().Name;
-
-            if (Directory.Exists(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}") is not true)
+            
+            if (Directory.Exists(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}") is not true) 
                 Directory.CreateDirectory(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}");
+            
+            const string configFileName = "permissions.json";
+            var permissionsCollectionsConfigPath = Path.Combine(Admins.Instance.ConfigsPath, $"Deathrun.Manager/modules/{moduleName}/{configFileName}");
 
+            var permissions = GetDefaultAdminsConfig().Permissions;
+
+            foreach (var command in CommandsConfig?.Commands ?? [])
             {
-                const string configFileName = "permissions.json";
-                var permissionsCollectionsConfigPath = Path.Combine(Admins.Instance.ConfigsPath, $"Deathrun.Manager/modules/{moduleName}/{configFileName}");
-
-                // Only create the file if it doesn't exist (similar to commands.json behavior)
-                if (File.Exists(permissionsCollectionsConfigPath) is not true)
-                {
-                    var permissions = GetDefaultAdminsConfig().Permissions;
-
-                    // Build permissions from CommandsConfig values
-                    foreach (var command in CommandsConfig?.Commands ?? [])
-                    {
-                        if (permissions.Collections.TryGetValue(permissions.PermissionRegistryIdentity, out var cmdPermissions))
-                            cmdPermissions.Add(permissions.PermissionRegistryIdentity + ":" + command.Value.Permission);
-                        else
-                            permissions.Collections.TryAdd(permissions.PermissionRegistryIdentity,
-                                [ permissions.PermissionRegistryIdentity + ":" + command.Value.Permission ]);
-                    }
-
-                    File.WriteAllText(permissionsCollectionsConfigPath, JsonSerializer
-                        .Serialize(permissions, new JsonSerializerOptions { WriteIndented = true }));
-                }
-
-                // Always load from the file (gives config file priority)
-                AdminsConfig.Permissions = JsonSerializer.Deserialize<PermissionCollections>(File.ReadAllText(permissionsCollectionsConfigPath)) ?? throw new Exception("Failed to load permissions collections");
+                if (permissions.Collections.TryGetValue(permissions.PermissionRegistryIdentity, out var cmdPermissions))
+                    cmdPermissions.Add(permissions.PermissionRegistryIdentity + ":" + command.Value.Permission);
+                else
+                    permissions.Collections.TryAdd(permissions.PermissionRegistryIdentity, 
+                        [ permissions.PermissionRegistryIdentity + ":" + command.Value.Permission ]);
             }
+            
+            File.WriteAllText(permissionsCollectionsConfigPath, JsonSerializer
+                .Serialize(permissions, new JsonSerializerOptions { WriteIndented = true }));
+            
+            AdminsConfig.Permissions = JsonSerializer.Deserialize<PermissionCollections>(File.ReadAllText(permissionsCollectionsConfigPath)) ?? throw new Exception("Failed to load permissions collections");
         }
         catch (Exception ex)
         {
