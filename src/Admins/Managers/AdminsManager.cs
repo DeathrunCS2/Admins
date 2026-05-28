@@ -91,28 +91,34 @@ internal class AdminsManager(
         try
         {
             var moduleName = Assembly.GetExecutingAssembly().GetName().Name;
-            
-            if (Directory.Exists(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}") is not true) 
+
+            if (Directory.Exists(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}") is not true)
                 Directory.CreateDirectory(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}");
 
             {
                 const string configFileName = "permissions.json";
                 var permissionsCollectionsConfigPath = Path.Combine(Admins.Instance.ConfigsPath, $"Deathrun.Manager/modules/{moduleName}/{configFileName}");
 
-                var permissions = GetDefaultAdminsConfig().Permissions;
-
-                foreach (var command in CommandsConfig?.Commands ?? [])
+                // Only create the file if it doesn't exist (similar to commands.json behavior)
+                if (File.Exists(permissionsCollectionsConfigPath) is not true)
                 {
-                    if (permissions.Collections.TryGetValue(permissions.PermissionRegistryIdentity, out var cmdPermissions))
-                        cmdPermissions.Add(permissions.PermissionRegistryIdentity + ":" + command.Value.Permission);
-                    else
-                        permissions.Collections.TryAdd(permissions.PermissionRegistryIdentity, 
-                            [ permissions.PermissionRegistryIdentity + ":" + command.Value.Permission ]);
+                    var permissions = GetDefaultAdminsConfig().Permissions;
+
+                    // Build permissions from CommandsConfig values
+                    foreach (var command in CommandsConfig?.Commands ?? [])
+                    {
+                        if (permissions.Collections.TryGetValue(permissions.PermissionRegistryIdentity, out var cmdPermissions))
+                            cmdPermissions.Add(permissions.PermissionRegistryIdentity + ":" + command.Value.Permission);
+                        else
+                            permissions.Collections.TryAdd(permissions.PermissionRegistryIdentity,
+                                [ permissions.PermissionRegistryIdentity + ":" + command.Value.Permission ]);
+                    }
+
+                    File.WriteAllText(permissionsCollectionsConfigPath, JsonSerializer
+                        .Serialize(permissions, new JsonSerializerOptions { WriteIndented = true }));
                 }
-                
-                File.WriteAllText(permissionsCollectionsConfigPath, JsonSerializer
-                    .Serialize(permissions, new JsonSerializerOptions { WriteIndented = true }));
-                
+
+                // Always load from the file (gives config file priority)
                 AdminsConfig.Permissions = JsonSerializer.Deserialize<PermissionCollections>(File.ReadAllText(permissionsCollectionsConfigPath)) ?? throw new Exception("Failed to load permissions collections");
             }
         }
@@ -311,60 +317,49 @@ internal class AdminsManager(
     {
         var registeredCommands = new List<IAdminCommand>();
         
+        var commandRegistry = Admins.Instance
+            .DeathrunManager
+            .Managers
+            .AdminManager.GetCommandRegistry(Admins.BaseAdminModuleIdentity);
+        
         foreach (var adminCommand in Admins.Instance.ServiceProvider.GetServices<IAdminCommand>())
         {
             //proceed only if the command is documented in config
             if (CommandsConfig?.Commands.ContainsKey(adminCommand.CommandString) is not true) continue;
-            
-            var commandRegistry = Admins.Instance
-                .DeathrunManager
-                .Managers
-                .AdminManager.GetCommandRegistry(Admins.BaseAdminModuleIdentity);
-            
-            commandRegistry.RegisterAdminCommand(adminCommand.CommandString, adminCommand.OnCommandExecute, [AdminsConfig.Permissions.PermissionRegistryIdentity + ":" + adminCommand.CommandInfo.Permission]);
-            
+
+            // Get command info from config (takes priority over C# object values)
+            var commandInfoFromConfig = CommandsConfig.Commands[adminCommand.CommandString];
+
+            commandRegistry.RegisterAdminCommand(adminCommand.CommandString, adminCommand.OnCommandExecute, [AdminsConfig.Permissions.PermissionRegistryIdentity + ":" + commandInfoFromConfig.Permission]);
+
             //check for aliases and register them if any
-            if (adminCommand.CommandInfo.Aliases.Length > 0)
-                foreach (var alias in adminCommand.CommandInfo.Aliases)
-                    commandRegistry.RegisterAdminCommand(alias, adminCommand.OnCommandExecute, [AdminsConfig.Permissions.PermissionRegistryIdentity + ":" + adminCommand.CommandInfo.Permission]);
-            
-            commandRegistry.RegisterPermissions([AdminsConfig.Permissions.PermissionRegistryIdentity + ":" + adminCommand.CommandInfo.Permission]);
+            if (commandInfoFromConfig.Aliases.Length > 0)
+                foreach (var alias in commandInfoFromConfig.Aliases)
+                    commandRegistry.RegisterAdminCommand(alias, adminCommand.OnCommandExecute, [AdminsConfig.Permissions.PermissionRegistryIdentity + ":" + commandInfoFromConfig.Permission]);
+
+            commandRegistry.RegisterPermissions([AdminsConfig.Permissions.PermissionRegistryIdentity + ":" + commandInfoFromConfig.Permission]);
 
             registeredCommands.Add(adminCommand);
         }
         
-        // var allRegisteredCommandsString = registeredCommands
-        //     .Select(command =>
-        //     {
-        //         var aliases = command.CommandInfo.Aliases.Length > 0
-        //             ? $" ({command.CommandInfo.Aliases.Aggregate((current, next) => $"{current}, {next}")})"
-        //             : "";
-        //
-        //         return $"{command.CommandString}{aliases}";
-        //     })
-        //     .Aggregate((current, next) => $"{current} | {next}");
         var iterator = 0;
         var allRegisteredCommandsString = string.Join("   ", registeredCommands.Select(command =>
         {
-            if (command.CommandInfo.Aliases.Length is 0)
+            // Use config values for display
+            var configInfo = CommandsConfig?.Commands[command.CommandString];
+
+            if (configInfo?.Aliases.Length is 0 or null)
                 return command.CommandString;
 
             iterator++;
-            
+
             var commandString = AnsiColorMapExtension.Peach + command.CommandString + AnsiColorMapExtension.Reset;
-            var aliases = $"{AnsiColorMapExtension.Gray}[{AnsiColorMapExtension.Reset} " + string.Join(", ", command.CommandInfo.Aliases) + $" {AnsiColorMapExtension.Gray}]{AnsiColorMapExtension.Reset}";
-            
+            var aliases = $"{AnsiColorMapExtension.Gray}[{AnsiColorMapExtension.Reset} " + string.Join(", ", configInfo.Aliases) + $" {AnsiColorMapExtension.Gray}]{AnsiColorMapExtension.Reset}";
+
             return iterator % 4 is 0 ? $"\n{commandString} {aliases}" : $"{commandString} {aliases}";
         }));
         
         Console.WriteLine($"Registered admin commands: \n{allRegisteredCommandsString ?? "none"}", allRegisteredCommandsString);
-    }
-    
-    public static void WriteColoredChar(char character, string color)
-    {
-        const string reset = "\u001b[0m";
-
-        Console.Write($"{color}{character}{reset}");
     }
     
     #endregion
