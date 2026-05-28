@@ -19,7 +19,6 @@ Most importantly you need to configure the database connection in `sharp/configs
 > The database driver must be *mysql*.
 
 ```json
-
 {
   "Host": "localhost",
   "Database": "mysqldbname",
@@ -28,8 +27,94 @@ Most importantly you need to configure the database connection in `sharp/configs
   "Port": 3306,
   "TableName": "deathrun_admins"
 }
-
 ```
+
+## Admin Roles
+
+Admin roles provide a convenient way to group permissions together. Instead of assigning individual permissions to each admin, you can assign them a role that contains multiple permissions.
+
+### Role Configuration
+
+Roles are defined in `sharp/configs/Deathrun.Manager/modules/Admins/roles.json`:
+
+```json
+[
+  {
+    "Identity": "root",
+    "Immunity": 255,
+    "Permissions": [
+      "*"
+    ]
+  },
+  {
+    "Identity": "serveradmin",
+    "Immunity": 80,
+    "Permissions": [
+      "@admin",
+      "admin:ban",
+      "admin:unban"
+    ]
+  },
+  {
+    "Identity": "admin",
+    "Immunity": 60,
+    "Permissions": [
+      "admin:mute",
+      "admin:silence",
+      "admin:gag",
+      "admin:kick",
+      "admin:say",
+      "admin:csay",
+      "admin:hsay",
+      "admin:psay",
+      "admin:slay",
+      "admin:slap",
+      "admin:team",
+      "admin:map"
+    ]
+  }
+]
+```
+
+### Default Roles
+
+The module includes three default roles:
+
+| Role | Immunity | Description |
+|------|----------|-------------|
+| **root** | 255 | Full access - all permissions (`*`) |
+| **serveradmin** | 80 | High-level admin with ban/unban capabilities plus all `@admin` permissions |
+| **admin** | 60 | Standard admin with moderation and utility commands |
+
+### Using Roles
+
+When adding an admin, you can reference roles using the `@` prefix:
+
+```bash
+# Grant the "admin" role
+/addadmin 76561198012345678 60 @admin
+
+# Grant multiple roles
+/addadmin 76561198012345678 80 @admin,@serveradmin
+
+# Mix roles and individual permissions
+/addadmin 76561198012345678 70 @admin,deathrun.manager:addcredits
+```
+
+### Immunity System
+
+Immunity determines the hierarchy between admins:
+- Higher immunity can target lower immunity admins
+- Admins cannot target other admins with equal or higher immunity
+- Immunity range: `0-255` (higher = more powerful)
+
+### Permission Format
+
+Permissions follow the format: `registry:permission`
+
+- **Wildcard**: `*` grants all permissions
+- **Role reference**: `@rolename` grants all permissions from that role
+- **Specific permission**: `deathrun.manager:addcredits` grants one specific permission
 
 ## Commands
 
