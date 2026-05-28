@@ -3,25 +3,33 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Sharp.Shared;
-using ExampleModule.Extensions;
-using ExampleModule.Interfaces;
-using ExampleModule.Interfaces.Services;
-using ExampleModule.Services;
+using Admins.Extensions.DependencyInjectionExtensions;
+using Admins.Managers;
+using DeathrunManager.Shared.Objects;
 
-namespace ExampleModule;
+namespace Admins;
 
-public sealed class ExampleModule(ISharedSystem sharedSystem, IDeathrunManager deathrunManagerApi) : IDeathrunModule
+public sealed class Admins(ISharedSystem sharedSystem, IDeathrunManager deathrunManagerApi) : IDeathrunModule
 {
-    public string Name                                                 => "Environment Modifier for Deathrun mode";
+    public string Name                                                 => "Admins";
     public string Author                                               => "AquaVadis";
 
     public IDeathrunManager DeathrunManager { get; }                   = deathrunManagerApi;
     public required ServiceProvider ServiceProvider                    { get; set; }
 
-    private ILogger<ExampleModule> Logger { get; set; }                = sharedSystem.GetLoggerFactory().CreateLogger<ExampleModule>();
+    public static Admins Instance { get; private set; }                = null!;
+    public static string BaseAdminModuleIdentity { get; private set; } = ""; 
+    public string ConfigsPath { get; private set; }                    = deathrunManagerApi.CommonVars.ConfigsPath;
+    
+    private ILogger<Admins> Logger { get; }                            = sharedSystem.GetLoggerFactory().CreateLogger<Admins>();
 
     public bool Init(bool hotReload)
     {
+        Instance = this;
+        
+        //target the identity of the module that is the setting the default admin config
+        BaseAdminModuleIdentity = "Sharp.Modules.AdminManager";
+        
         var services = new ServiceCollection();
 
         services.AddSingleton(this);
@@ -33,8 +41,8 @@ public sealed class ExampleModule(ISharedSystem sharedSystem, IDeathrunManager d
         services.AddSingleton(sharedSystem.GetClientManager());
         services.AddSingleton(sharedSystem.GetTransmitManager());
         services.AddSingleton(sharedSystem.GetLoggerFactory());
-        
-        services.AddSingleton<IBaseInterface, IService, ExampleService>();
+
+        services.AddManagers();
         
         services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
         

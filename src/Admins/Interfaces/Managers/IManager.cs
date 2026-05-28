@@ -1,3 +1,3 @@
-namespace ExampleModule.Interfaces.Managers;
+namespace Admins.Interfaces.Managers;
 
 internal interface IManager : IBaseInterface;

@@ -1,13 +1,11 @@
 <Project>
     <PropertyGroup>
         <Authors>AquaVadis</Authors>
-        <VersionPrefix>0.0.1</VersionPrefix>
+        <VersionPrefix>0.0.4</VersionPrefix>
         <VersionSuffix>0</VersionSuffix>
         <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     </PropertyGroup>
 	<ItemGroup>
-        <PackageReference Include="Dapper" Version="2.1.72" />
-        <PackageReference Include="MySqlConnector" Version="2.5.0" />
 		<PackageReference Include="ModSharp.Sharp.Shared" Version="*" PrivateAssets="all" />
         <PackageReference Include="DeathrunManager.Shared" Version="*" PrivateAssets="all"/>
         <PackageReference Include="Sharp.Modules.AdminManager.Shared" Version="*" PrivateAssets="all"/>

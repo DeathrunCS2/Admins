@@ -5,8 +5,8 @@
         <ImplicitUsings>disable</ImplicitUsings>
         <LangVersion>13</LangVersion>
         <Nullable>enable</Nullable>
-        <AssemblyName>ExampleModule</AssemblyName>
-        <RootNamespace>ExampleModule</RootNamespace>
+        <AssemblyName>Admins</AssemblyName>
+        <RootNamespace>Admins</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PlatformTarget>x64</PlatformTarget>
         <Version>0.0.1</Version>
@@ -26,6 +26,11 @@
             <_Parameter2>$(GITHUB_RUN_NUMBER)</_Parameter2>
         </AssemblyAttribute>
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Dapper" Version="2.1.79" />
+      <PackageReference Include="MySqlConnector" Version="2.5.0" />
+    </ItemGroup>
     
     <Target Name="CopyCompiledOutputs" AfterTargets="Build">
         <ItemGroup>
@@ -36,7 +41,7 @@
 
         <Copy
             SourceFiles="@(CompiledFiles)"
-            DestinationFolder="..\..\.sharp\modules\Deathrun.Manager\modules\ExampleModule" />
+            DestinationFolder="..\..\.sharp\modules\Deathrun.Manager\modules\Admins" />
     </Target>
 
 </Project>

@@ -1,4 +1,4 @@
-namespace ExampleModule.Interfaces;
+namespace Admins.Interfaces;
 
 internal interface IBaseInterface
 {

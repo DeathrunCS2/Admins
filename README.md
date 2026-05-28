@@ -1,1 +1,1 @@
-## Module template for [Deathrun Manager](https://github.com/DeathrunCS2/DeathrunManager)
+## Admins extension for [Deathrun Manager](https://github.com/DeathrunCS2/DeathrunManager)

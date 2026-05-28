@@ -1,9 +1,14 @@
 using System;
-using ExampleModule.Interfaces;
+using Admins.Commands.Admins;
+using Admins.Commands.EconomySystem;
+using Admins.Commands.LivesSystem;
+using Admins.Interfaces;
+using Admins.Interfaces.Managers;
+using Admins.Managers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ExampleModule.Extensions;
+namespace Admins.Extensions.DependencyInjectionExtensions;
 
 internal static class DependencyInjectionExtensions
 {
