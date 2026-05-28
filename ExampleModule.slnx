@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\ExampleModule\ExampleModule.csproj" />
+    <File Path="src/Directory.Build.props" />
+  </Folder>
+</Solution>
