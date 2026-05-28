@@ -1,15 +1,14 @@
 ## Admins extension for [Deathrun Manager](https://github.com/DeathrunCS2/DeathrunManager)
 
-A comprehensive admin management module for Deathrun Manager that provides database-backed admin permissions and commands for managing players, economy, and lives systems.
+An abstraction layer for the ModSharp's AdminManager FPM module that provides database-backed admin permissions and commands for managing players, economy, and lives systems etc..
 
 ## Features
 
-- **Database-backed admin system** - MySQL storage for persistent admin data
+- **Database storage** - MySQL storage for persistent admin data
 - **Permission-based commands** - Granular permission system with roles and immunity levels
 - **Economy management** - Add/remove credits from players
 - **Lives system management** - Modify player lives
 - **Runtime admin management** - Add/remove admins without server restart
-- **Command aliases** - Multiple aliases for each command
 - **Player targeting** - Support for targeting players by name or pattern
 
 ## Configuration
