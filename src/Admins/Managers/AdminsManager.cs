@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -66,19 +65,17 @@ internal class AdminsManager(
             if (Directory.Exists(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}") is not true) 
                 Directory.CreateDirectory(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}");
             
-            {
-                const string configFileName = "database.json";
-                var databaseConfigPath = Path.Combine(Admins.Instance.ConfigsPath, $"Deathrun.Manager/modules/{moduleName}/{configFileName}");
-                
-                if (File.Exists(databaseConfigPath) is not true)
-                    File.WriteAllText(databaseConfigPath, JsonSerializer
-                        .Serialize(GetDefaultAdminsConfig().Storage, JsonSerializerOptions));
-                
-                AdminsConfig.Storage = JsonSerializer.Deserialize<AdminsStorage>(File.ReadAllText(databaseConfigPath)) ?? throw new Exception("Failed to load roles list");
-                
-                if (AdminsConfig.Storage.Database is "database_name")
-                    throw new Exception("Database details not found in database.json. Please fill in the config file and try again.");
-            }
+            const string configFileName = "database.json";
+            var databaseConfigPath = Path.Combine(Admins.Instance.ConfigsPath, $"Deathrun.Manager/modules/{moduleName}/{configFileName}");
+            
+            if (File.Exists(databaseConfigPath) is not true)
+                File.WriteAllText(databaseConfigPath, JsonSerializer
+                    .Serialize(GetDefaultAdminsConfig().Storage, JsonSerializerOptions));
+            
+            AdminsConfig.Storage = JsonSerializer.Deserialize<AdminsStorage>(File.ReadAllText(databaseConfigPath)) ?? throw new Exception("Failed to load roles list");
+            
+            if (AdminsConfig.Storage.Database is "database_name")
+                throw new Exception("Database details not found in database.json. Please fill in the config file and try again.");
         }
         catch (Exception ex)
         {
@@ -129,15 +126,23 @@ internal class AdminsManager(
             if (Directory.Exists(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}") is not true) 
                 Directory.CreateDirectory(Admins.Instance.ConfigsPath + $"/Deathrun.Manager/modules/{moduleName}");
             
+            const string configFileName = "roles.json";
+            var rolesConfigPath = Path.Combine(Admins.Instance.ConfigsPath, $"Deathrun.Manager/modules/{moduleName}/{configFileName}");
+            
+            if (File.Exists(rolesConfigPath) is not true)
+                File.WriteAllText(rolesConfigPath, JsonSerializer.Serialize(GetDefaultAdminsConfig().Roles, JsonSerializerOptions));
+            
+            AdminsConfig.Roles = JsonSerializer.Deserialize<List<RoleManifest>>(File.ReadAllText(rolesConfigPath)) ?? throw new Exception("Failed to load roles list");
+            
+            var allRegisteredCommandsString = string.Join("   ", AdminsConfig.Roles.Select(role =>
             {
-                const string configFileName = "roles.json";
-                var rolesConfigPath = Path.Combine(Admins.Instance.ConfigsPath, $"Deathrun.Manager/modules/{moduleName}/{configFileName}");
-                
-                if (File.Exists(rolesConfigPath) is not true)
-                    File.WriteAllText(rolesConfigPath, JsonSerializer.Serialize(GetDefaultAdminsConfig().Roles, JsonSerializerOptions));
-                
-                AdminsConfig.Roles = JsonSerializer.Deserialize<List<RoleManifest>>(File.ReadAllText(rolesConfigPath)) ?? throw new Exception("Failed to load roles list");
-            }
+                var commandString = AnsiColorMapExtension.Peach + role.Name + AnsiColorMapExtension.Reset;
+                var aliases = $"{AnsiColorMapExtension.Gray}[{AnsiColorMapExtension.Reset} " + string.Join(", ", role.Permissions) + $" {AnsiColorMapExtension.Gray}]{AnsiColorMapExtension.Reset}";
+
+                return $"{commandString} {aliases}\n";
+            }));
+    
+            Console.WriteLine($"Registered admin roles and their permissions: \n{allRegisteredCommandsString ?? "none"}", allRegisteredCommandsString);
         }
         catch (Exception ex)
         {
@@ -166,7 +171,7 @@ internal class AdminsManager(
                 //info: fixed an issue where the admin list needed 2 or more manual `refresh` commands to be loaded into the admin manager
                 //this is a temporary fix until I figure out how to properly reload the admin list reliably
                 //tried: delayed call via `PushTimer`
-                ReloadAdmins();
+                //ReloadAdmins();
             });
 
         }
@@ -277,10 +282,8 @@ internal class AdminsManager(
             var sharpPath = Path.Combine(modSharp.GetGamePath(), "../sharp");
             var configPathConstruct = Path.GetFullPath(Path.Combine(sharpPath, "configs"));
             
-            //
             var moduleName = Assembly.GetExecutingAssembly().GetName().Name;
             const string configFileName = "commands.json";
-            //
             
             if (Directory.Exists(configPathConstruct + $"/Deathrun.Manager/modules/{moduleName}") is not true) 
                 Directory.CreateDirectory(configPathConstruct + $"/Deathrun.Manager/modules/{moduleName}");
@@ -334,16 +337,6 @@ internal class AdminsManager(
             registeredCommands.Add(adminCommand);
         }
         
-        // var allRegisteredCommandsString = registeredCommands
-        //     .Select(command =>
-        //     {
-        //         var aliases = command.CommandInfo.Aliases.Length > 0
-        //             ? $" ({command.CommandInfo.Aliases.Aggregate((current, next) => $"{current}, {next}")})"
-        //             : "";
-        //
-        //         return $"{command.CommandString}{aliases}";
-        //     })
-        //     .Aggregate((current, next) => $"{current} | {next}");
         var iterator = 0;
         var allRegisteredCommandsString = string.Join("   ", registeredCommands.Select(command =>
         {
