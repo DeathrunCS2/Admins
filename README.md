@@ -124,11 +124,18 @@ Permissions follow the format: `registry:permission`
 **Permission:** `addadmin`
 **Usage:** `/addadmin <steamid64> <immunity> <permissions>`
 **Description:** Adds a new admin to the database with specified immunity level and permissions.
-**Remark:** Permissions are comma-separated. Use `*` to grant all permissions.
-**Remark:** Accepts roles and specific strings as permissions if defined in the config.
-**Example:**
-```
-/addadmin 76561198012345678 100 @admin,deathrun.manager:addcredits,deathrun.manager:takecredits
+
+**Examples:**
+
+```bash
+# Grant the "admin" role
+/addadmin 76561198012345678 60 @admin
+
+# Grant multiple roles
+/addadmin 76561198012345678 80 @admin,@serveradmin
+
+# Mix roles and individual permissions
+/addadmin 76561198012345678 70 @admin,deathrun.manager:addcredits
 ```
 
 #### `/removeadmin` (aliases: `takeadmin`)
