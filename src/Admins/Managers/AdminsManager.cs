@@ -106,8 +106,9 @@ internal class AdminsManager(
                         [ permissions.PermissionRegistryIdentity + ":" + command.Value.Permission ]);
             }
             
-            File.WriteAllText(permissionsCollectionsConfigPath, JsonSerializer
-                .Serialize(permissions, new JsonSerializerOptions { WriteIndented = true }));
+            if (File.Exists(permissionsCollectionsConfigPath) is not true)
+                File.WriteAllText(permissionsCollectionsConfigPath, JsonSerializer
+                    .Serialize(permissions, new JsonSerializerOptions { WriteIndented = true }));
             
             AdminsConfig.Permissions = JsonSerializer.Deserialize<PermissionCollections>(File.ReadAllText(permissionsCollectionsConfigPath)) ?? throw new Exception("Failed to load permissions collections");
         }
