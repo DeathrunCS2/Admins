@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <Authors>AquaVadis</Authors>
-        <VersionPrefix>0.0.4</VersionPrefix>
+        <VersionPrefix>0.0.5</VersionPrefix>
         <VersionSuffix>0</VersionSuffix>
         <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     </PropertyGroup>
