@@ -15,6 +15,7 @@ public static class ManagersDI
         services.AddAdminCommands();
         
         services.AddSingleton<IBaseInterface, IManager, AdminsManager>();
+        services.AddSingleton<IBaseInterface, IManager, ServerUserLoginIpManager>();
 
         return services;
     }
